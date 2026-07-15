@@ -1,0 +1,66 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Balance Tracker</title>
+    <link rel="stylesheet" href="style.css" />
+  </head>
+  <body>
+    <div class="container">
+      <h1>Account Balances</h1>
+      <div id="loading">Loading data from Google Sheets...</div>
+
+      <table id="usersTable" style="display: none">
+        <thead>
+          <tr>
+            <th>Name</th>
+            <th>Phone</th>
+            <th>Starting ($)</th>
+            <th>Current ($)</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody id="tableBody">
+          <!-- Data will be injected here via JS -->
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Purchase Modal -->
+    <div id="purchaseModal" class="modal">
+      <div class="modal-content">
+        <span class="close" onclick="closeModal()">&times;</span>
+        <h2 id="modalTitle">Record Purchase</h2>
+        <form id="purchaseForm">
+          <input type="hidden" id="userRow" />
+          <input type="hidden" id="userName" />
+          <input type="hidden" id="userCurrentBalance" />
+
+          <div class="form-group">
+            <label>Description (What was bought?)</label>
+            <input
+              type="text"
+              id="description"
+              required
+              placeholder="e.g., Groceries"
+            />
+          </div>
+          <div class="form-group">
+            <label>Amount Deducted ($)</label>
+            <input
+              type="number"
+              id="amount"
+              step="0.01"
+              required
+              placeholder="0.00"
+            />
+          </div>
+          <button type="submit" id="submitBtn">Submit Purchase</button>
+        </form>
+      </div>
+    </div>
+
+    <script src="script.js"></script>
+  </body>
+</html>

@@ -7,9 +7,36 @@
     <link rel="stylesheet" href="style.css" />
   </head>
   <body>
-    <div class="container">
-      <h1>Account Balances</h1>
-      <div id="loading">Loading data from Google Sheets...</div>
+    <!-- Login Screen -->
+    <div id="loginScreen" class="login-container">
+      <div class="login-box">
+        <h2>Enter Password</h2>
+        <p id="loginError" class="error-msg" style="display: none">
+          Incorrect password. Try again.
+        </p>
+        <form id="loginForm">
+          <input
+            type="password"
+            id="appPassword"
+            placeholder="Password"
+            required
+            autocomplete="current-password"
+          />
+          <button type="submit">Access App</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- Main Application Interface (Hidden by default) -->
+    <div id="appContainer" class="container" style="display: none">
+      <div class="header-row">
+        <h1>Account Balances</h1>
+        <button onclick="logout()" class="logout-btn">Logout</button>
+      </div>
+
+      <div id="loading" style="display: none">
+        Loading data from Google Sheets...
+      </div>
 
       <table id="usersTable" style="display: none">
         <thead>
@@ -22,7 +49,7 @@
           </tr>
         </thead>
         <tbody id="tableBody">
-          <!-- Data will be injected here via JS -->
+          <!-- Data injected here -->
         </tbody>
       </table>
     </div>

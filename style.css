@@ -4,6 +4,7 @@
   --surface: #ffffff;
   --text: #0f172a;
   --border: #e2e8f0;
+  --danger: #ef4444;
 }
 
 body {
@@ -14,30 +15,77 @@ body {
   color: var(--text);
   margin: 0;
   padding: 20px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  box-sizing: border-box;
 }
 
 .container {
+  width: 100%;
   max-width: 900px;
-  margin: 0 auto;
   background: var(--surface);
   padding: 30px;
   border-radius: 12px;
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
 }
 
-h1 {
-  margin-top: 0;
+.header-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
   border-bottom: 2px solid var(--border);
   padding-bottom: 10px;
 }
 
-#loading {
-  text-align: center;
-  padding: 40px;
-  color: #64748b;
-  font-style: italic;
+h1 {
+  margin: 0;
 }
 
+/* Login Form Styling */
+.login-container {
+  width: 100%;
+  max-width: 400px;
+}
+
+.login-box {
+  background: var(--surface);
+  padding: 30px;
+  border-radius: 12px;
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
+
+.login-box input {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-sizing: border-box;
+  font-size: 16px;
+}
+
+.login-box button {
+  width: 100%;
+  padding: 12px;
+}
+
+.error-msg {
+  color: var(--danger);
+  font-size: 14px;
+  margin-bottom: 15px;
+}
+
+.logout-btn {
+  background-color: #64748b;
+}
+.logout-btn:hover {
+  background-color: #475569;
+}
+
+/* Table */
 table {
   width: 100%;
   border-collapse: collapse;
@@ -70,7 +118,7 @@ button:hover {
   background-color: #1d4ed8;
 }
 
-/* Modal Styling */
+/* Modal */
 .modal {
   display: none;
   position: fixed;
@@ -81,6 +129,7 @@ button:hover {
   background-color: rgba(0, 0, 0, 0.5);
   align-items: center;
   justify-content: center;
+  z-index: 10;
 }
 
 .modal-content {

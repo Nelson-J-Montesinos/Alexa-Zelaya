@@ -1,38 +1,102 @@
-// PASTE YOUR GOOGLE APPS SCRIPT WEB APP URL HERE
 const API_URL =
-  "https://script.google.com/macros/s/AKfycbyC4j7hUARMNGiHGHCf1ATYf9ktKM-cHrvadj9Tw0On7qZyZ3a-8ZBjumovYP-omGM/exec";
+  "https://script.google.com/macros/s/AKfycbz47WpdrpCU924k9a3kKtTXkn1C9Xknoa11dDaBeWOd70-cFm5fb7F5UxEN7t2DFHwg/exec";
 
-document.addEventListener("DOMContentLoaded", loadData);
+let userPassword = sessionStorage.getItem("app_pw") || "";
 
+document.addEventListener("DOMContentLoaded", () => {
+  if (userPassword) {
+    showApp();
+  } else {
+    showLogin();
+  }
+});
+
+// Manage Views
+function showLogin() {
+  document.getElementById("loginScreen").style.display = "block";
+  document.getElementById("appContainer").style.display = "none";
+}
+
+function showApp() {
+  document.getElementById("loginScreen").style.display = "none";
+  document.getElementById("appContainer").style.display = "block";
+  loadData();
+}
+
+// Handle Login Form
+document.getElementById("loginForm").addEventListener("submit", function (e) {
+  e.preventDefault();
+  userPassword = document.getElementById("appPassword").value;
+  showApp();
+});
+
+function logout() {
+  sessionStorage.removeItem("app_pw");
+  userPassword = "";
+  document.getElementById("appPassword").value = "";
+  document.getElementById("usersTable").style.display = "none";
+  showLogin();
+}
+
+// Fetch Data
 async function loadData() {
+  const loadingDiv = document.getElementById("loading");
+  const tableEl = document.getElementById("usersTable");
+  const errorMsg = document.getElementById("loginError");
+
+  loadingDiv.style.display = "block";
+  tableEl.style.display = "none";
+  errorMsg.style.display = "none";
+
   try {
-    const response = await fetch(API_URL);
-    const users = await response.json();
+    // We pass the password securely to the Google Apps Script via query params
+    const response = await fetch(
+      `${API_URL}?password=${encodeURIComponent(userPassword)}`,
+      {
+        method: "GET",
+        redirect: "follow",
+      },
+    );
 
-    const tbody = document.getElementById("tableBody");
-    tbody.innerHTML = "";
+    const result = await response.json();
 
-    users.forEach((user) => {
-      const tr = document.createElement("tr");
-      tr.innerHTML = `
-                <td>${user.name}</td>
-                <td>${user.phone}</td>
-                <td>$${parseFloat(user.startingBalance).toFixed(2)}</td>
-                <td id="balance-${user.row}">$${parseFloat(user.currentBalance).toFixed(2)}</td>
-                <td>
-                    <button onclick="openModal(${user.row}, '${user.name}', ${user.currentBalance})">
-                        Log Purchase
-                    </button>
-                </td>
-            `;
-      tbody.appendChild(tr);
-    });
+    if (result.status === "unauthorized") {
+      // If the password was wrong, clear memory and kick them back to login
+      logout();
+      errorMsg.innerText = "Incorrect Password.";
+      errorMsg.style.display = "block";
+      return;
+    }
 
-    document.getElementById("loading").style.display = "none";
-    document.getElementById("usersTable").style.display = "table";
+    if (result.status === "success") {
+      // Save valid password for the rest of the browser session
+      sessionStorage.setItem("app_pw", userPassword);
+
+      const tbody = document.getElementById("tableBody");
+      tbody.innerHTML = "";
+
+      result.data.forEach((user) => {
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+                    <td>${user.name}</td>
+                    <td>${user.phone}</td>
+                    <td>$${parseFloat(user.startingBalance).toFixed(2)}</td>
+                    <td id="balance-${user.row}">$${parseFloat(user.currentBalance).toFixed(2)}</td>
+                    <td>
+                        <button onclick="openModal(${user.row}, '${user.name}', ${user.currentBalance})">
+                            Log Purchase
+                        </button>
+                    </td>
+                `;
+        tbody.appendChild(tr);
+      });
+
+      loadingDiv.style.display = "none";
+      tableEl.style.display = "table";
+    }
   } catch (error) {
-    document.getElementById("loading").innerText =
-      "Error loading data. Check the console and ensure your API URL is correct.";
+    loadingDiv.innerText =
+      "Network Error. Could not establish contact with Google Sheets.";
     console.error("Error fetching data:", error);
   }
 }
@@ -56,7 +120,7 @@ function closeModal() {
   modal.style.display = "none";
 }
 
-// Handle Form Submission
+// Submit transaction
 document
   .getElementById("purchaseForm")
   .addEventListener("submit", async function (e) {
@@ -67,6 +131,7 @@ document
     submitBtn.disabled = true;
 
     const payload = {
+      password: userPassword, // Authenticate POST request
       row: document.getElementById("userRow").value,
       name: document.getElementById("userName").value,
       currentBalance: parseFloat(
@@ -79,23 +144,28 @@ document
     try {
       const response = await fetch(API_URL, {
         method: "POST",
+        redirect: "follow",
+        headers: {
+          "Content-Type": "text/plain;charset=utf-8",
+        },
         body: JSON.stringify(payload),
       });
 
       const result = await response.json();
 
       if (result.status === "success") {
-        // Update the UI immediately without reloading the page
         const balanceCell = document.getElementById(`balance-${payload.row}`);
         balanceCell.innerText = `$${result.newBalance.toFixed(2)}`;
 
-        // Update the click handler so the next purchase uses the new balance
         const buttonCell = balanceCell.nextElementSibling;
         buttonCell.innerHTML = `<button onclick="openModal(${payload.row}, '${payload.name}', ${result.newBalance})">Log Purchase</button>`;
 
         closeModal();
+      } else if (result.status === "unauthorized") {
+        alert("Session expired or password is invalid. Logging out.");
+        logout();
       } else {
-        alert("Error recording purchase.");
+        alert("Error recording purchase: " + result.message);
       }
     } catch (error) {
       console.error("Error:", error);
